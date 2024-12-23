@@ -28,15 +28,10 @@ BeforeAll {
         $global:multiFileArchive = "${testArchiveDir}\${multiFileBaseName}.7z"
         7z a "$multiFileArchive" $multiFilePath $PSCommandPath
 
-        # # copy this file to the multi-file archive directory
-        # Copy-Item -Path $PSCommandPath -Destination $multiFileDir
-        # # set the timestamp of the copied file
-        # Set-ItemProperty -Path $PSCommandPath -Name LastWriteTime -Value $myTimestamp
-
-        # # create the multi-file archive
-        # Push-Location -Path $multiFileDir
-        # $global:multiFileArchive = "${testArchiveDir}\multiFile.7z"
-        # 7z a "$multiFileArchive" *
+        # an archive with weird characters in the name
+        $global:weirdBaseName = 'weird[Name]'
+        $global:weirdArchive = "${testArchiveDir}\${weirdBaseName}.7z"
+        Copy-Item -Path $multiFileArchive -Destination $weirdArchive
 
         # archive this file to a 7z archive
         7z a "$testArchivePath" $PSCommandPath
@@ -53,9 +48,10 @@ Describe 'setup' {
     It 'can create test archives' {
         New-TestArchives
 
-        Test-Path -Path $testArchivePath | Should -BeTrue
-        Test-Path -Path $testZipPath | Should -BeTrue
-        Test-Path -Path $multiFileArchive | Should -BeTrue
+        Test-Path -LiteralPath $testArchivePath | Should -BeTrue
+        Test-Path -LiteralPath $testZipPath | Should -BeTrue
+        Test-Path -LiteralPath $multiFileArchive | Should -BeTrue
+        Test-Path -LiteralPath $weirdArchive | Should -BeTrue
     }
 }
 
@@ -86,6 +82,11 @@ Describe 'functions' {
             $timestamp | Should -BeOfType [DateTime]
         }
 
+        It 'Gets a DateTime object from a weird name archive' {
+            $timestamp = Get-ArchiveTimestamp -Path $weirdArchive
+            $timestamp | Should -BeOfType [DateTime]
+        }
+
         It 'Returns the correct timestamp' {
             $timestamp = Get-ArchiveTimestamp -Path $testArchivePath
             $timestamp | Should -Be $myTimestamp
@@ -102,15 +103,24 @@ Describe 'functions' {
             $timestamp | Should -Not -Be $multiFileTimestamp
             $timestamp | Should -Be $myTimestamp
         }
+
+        It 'Returns the correct timestamp from a weird name archive' {
+            $timestamp = Get-ArchiveTimestamp -Path $weirdArchive
+            $timestamp | Should -Be $myTimestamp
+        }
+
     }
 
     Describe 'Rename-Archive' {
+        BeforeAll {
+            # format the timestamp as a string
+            $global:myTimestampString = $myTimestamp.ToString('yyyyMMdd-HHmmss')
+        }
+
         It 'renames the archive' {
             Rename-Archive -Path $testArchivePath
             Test-Path -Path $testArchivePath | Should -BeFalse
 
-            # format the timestamp as a string
-            $myTimestampString = $myTimestamp.ToString('yyyyMMdd-HHmmss')
             Test-Path -Path "${testArchiveDir}\${testArchiveBaseName}_${myTimestampString}.7z" | Should -BeTrue
         }
 
@@ -118,8 +128,6 @@ Describe 'functions' {
             Rename-Archive -Path $testZipPath
             Test-Path -Path $testZipPath | Should -BeFalse
 
-            # format the timestamp as a string
-            $myTimestampString = $myTimestamp.ToString('yyyyMMdd-HHmmss')
             Test-Path -Path "${testArchiveDir}\${testArchiveBaseName}_${myTimestampString}.zip" | Should -BeTrue
         }
 
@@ -127,10 +135,19 @@ Describe 'functions' {
             Rename-Archive -Path $multiFileArchive
             Test-Path -Path $multiFileArchive | Should -BeFalse
 
-            # format the timestamp as a string
-            $myTimestampString = $myTimestamp.ToString('yyyyMMdd-HHmmss')
             Test-Path -Path "${testArchiveDir}\${multiFileBaseName}_${myTimestampString}.7z" | Should -BeTrue
         }
+
+        It 'renames the weird name archive' {
+            Rename-Archive -Path $weirdArchive
+
+            # the original archive should not exist
+            Test-Path -Path $weirdArchive | Should -BeFalse
+
+            # the renamed archive should exist
+            Test-Path -LiteralPath "${testArchiveDir}\${weirdBaseName}_${myTimestampString}.7z" | Should -BeTrue
+        }
+
     }
 }
 Describe 'Rename-Archive script' {
@@ -165,5 +182,15 @@ Describe 'Rename-Archive script' {
         Test-Path -Path $multiFileArchive | Should -BeFalse
 
         Test-Path -Path "${testArchiveDir}\${multiFileBaseName}_${myTimestampString}.7z" | Should -BeTrue
+    }
+
+    It 'renames the weird name archive' {
+        powershell -File $scriptPath $weirdArchive
+
+        # the original archive should not exist
+        Test-Path -LiteralPath $weirdArchive | Should -BeFalse
+
+        # the renamed archive should exist
+        Test-Path -LiteralPath "${testArchiveDir}\${weirdBaseName}_${myTimestampString}.7z" | Should -BeTrue
     }
 }

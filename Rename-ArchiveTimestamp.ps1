@@ -23,10 +23,10 @@ function Rename-Archive {
         [string]$Path
     )
 
-    $archive = Get-Item -Path "$Path"
-    $archiveExtension = $archive.Extension
-    $archiveBaseName = $archive.BaseName
-    $archiveDirectory = $archive.DirectoryName
+    $archive = Get-Item -LiteralPath "$Path"
+    $archiveExtension = ${archive}.Extension
+    $archiveBaseName = ${archive}.BaseName
+    $archiveDirectory = ${archive}.DirectoryName
 
     # get the timestamp of the archive
     $timestamp = Get-ArchiveTimestamp -Path "$Path"
@@ -38,7 +38,7 @@ function Rename-Archive {
     $newPath = "${archiveDirectory}\${archiveBaseName}_${timestamp}${archiveExtension}"
 
     # move the archive to the new path
-    $archive.MoveTo("$newPath")
+    Move-Item -LiteralPath "$Path" -Destination "$newPath"
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
