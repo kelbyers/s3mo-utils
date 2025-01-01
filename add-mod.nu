@@ -2,10 +2,8 @@
 
 use std log
 
-def get-archive-name [archive] {
-  let start = ($archive | str index-of --end "\\" | [1 $in] | math sum)
-  let end = ($archive | str index-of --end "." | [-1 $in ] | math sum)
-  $archive | str substring $start..$end
+def get-mod-name [source] {
+  $source | path parse | get stem
 }
 
 def "main extract" [...archives] {
@@ -20,7 +18,7 @@ def "main extract" [...archives] {
   $archives | each {
 
     let archive = $in
-    let mod_name = (get-archive-name $archive | str replace --all '.' '_')
+    let mod_name = (get-mod-name $archive | str replace --all '.' '_')
     let mod_directory = ($mods_directory + "\\" + $mod_name)
 
     if ($mod_directory | path exists) {
