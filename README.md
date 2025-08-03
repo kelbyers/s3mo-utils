@@ -2,13 +2,14 @@
 
 ## cpcfolder.bat
 
-`cpfolder.bat` is a batch script that copies mod folders from a specified location to the `Mods` directory. It takes one or more mod folder names as arguments.
+`cpfolder.bat` is a batch script that copies package files from a specified location to the `Mods` directory.
+It takes one or more package file names as arguments.
 
-Here's how it works:
+For each package file:
 
-1. It creates a new folder in the `Mods` directory with the same name as the mod folder.
-2. It copies the contents of the original mod folder to the new folder.
-3. If the mod folder is copied successfully, it opens the new folder in Windows Explorer.
+1. It creates a new folder in the `Mods` directory with the same base name as the package file.
+2. It copies the package file to the new folder.
+3. If the package file is copied successfully, it opens the new folder in Windows Explorer.
 
 You can use `cpfolder.bat` to easily organize your mods into separate folders within the `Mods` directory.
 
